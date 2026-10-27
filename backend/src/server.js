@@ -12,5 +12,5 @@ if(req.url==="/api/quote"){respond(res,503,{error:"Carrier shipping integration 
 // Fail closed: no checkout until authenticated carrier quote, Stripe session, webhook and order persistence are implemented.
 respond(res,503,{error:"Checkout unavailable until real carrier quote, verified Stripe payment, tax review and order records are configured"});
 }catch(error){respond(res,400,{error:"Invalid request"});}});
-if(import.meta.url===new URL("file:"+process.argv[1]).href)server.listen(port,()=>console.log("Development backend listening on "+port));
+if(process.argv[1]&&import.meta.url===new URL("file:"+process.argv[1]).href)server.listen(port,()=>console.log("Development backend listening on "+port));
 export {server};
