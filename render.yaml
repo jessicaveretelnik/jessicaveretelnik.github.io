@@ -1,0 +1,23 @@
+# Test-only infrastructure blueprint. Not deployed automatically.
+# Create a Render Blueprint manually from feature/book-cart-v1 only after review.
+services:
+  - type: web
+    name: jessica-books-api-test
+    runtime: node
+    plan: free
+    region: ohio
+    branch: feature/book-cart-v1
+    rootDir: backend
+    buildCommand: npm install --no-audit --no-fund && npm test
+    startCommand: npm start
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ENABLE_TEST_CHECKOUT
+        value: "false"
+      - key: ALLOWED_ORIGIN
+        value: https://jessicaveretelnik.github.io
+      # Add STRIPE_SECRET_KEY (sk_test_ only) and HTTPS return URLs
+      # in the Render secret settings after an isolated preview is ready.
+      # Never add sk_live_ keys or enable production checkout.
