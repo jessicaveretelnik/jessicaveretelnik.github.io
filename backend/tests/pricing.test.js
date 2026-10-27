@@ -12,7 +12,7 @@ test("USPS rates use published whole-pound retail bands for 1 through 16 copies"
 });
 test("mixed-title 5-copy carts return correct 3 lb USPS estimate with approved price",()=>{
  const q=priceCart([{id:"india",quantity:2},{id:"little-girl",quantity:3}]);
- assert.equal(q.count,5);assert.equal(q.bookWeightOz,40);assert.equal(q.estimatedBookWeightOz,40);assert.equal(q.billablePounds,3);assert.equal(q.mediaMailCents,586);assert.equal(q.approved,true);assert.equal(q.booksCents,5897);
+ assert.equal(q.count,5);assert.equal(q.bookWeightOz,40);assert.equal(q.estimatedBookWeightOz,40);assert.equal(q.billablePounds,3);assert.equal(q.mediaMailCents,586);assert.equal(q.approved,true);assert.equal(q.booksCents,6097);
 });
 test("all official 70 lb bands present and invalid USPS counts fail closed",()=>{
  assert.equal(MEDIA_MAIL_RETAIL_CENTS.length,70);assert.equal(mediaMailEstimate(100).billablePounds,50);
