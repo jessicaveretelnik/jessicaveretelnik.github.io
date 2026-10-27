@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "db:migrate:test": "node src/migrate-test.js"
   },
   "engines": {
     "node": ">=20"
