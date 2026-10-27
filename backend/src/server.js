@@ -1,9 +1,28 @@
 import http from "node:http";
 import {priceCart,validateZip,validateDedication} from "./pricing.js";
+import {verifyTestWebhook} from "./webhook-test.js";
+import {createTestPool,storeTestEvent} from "./test-db.js";
 // Server-only stub. No Stripe keys or USPS credentials in browser/GitHub Pages.
 const port=Number(process.env.PORT||8787);const allowedOrigin=process.env.ALLOWED_ORIGIN||"https://jessicaveretelnik.github.io";
 function respond(res,code,payload){res.writeHead(code,{"content-type":"application/json; charset=utf-8","cache-control":"no-store","access-control-allow-origin":allowedOrigin,"vary":"Origin"});res.end(JSON.stringify(payload));}
 const server=http.createServer(async(req,res)=>{if(req.url==="/health"&&req.method==="GET"){respond(res,200,{status:"ok"});return;}if(req.method==="OPTIONS"){res.writeHead(204,{"access-control-allow-origin":allowedOrigin,"access-control-allow-methods":"POST, OPTIONS","access-control-allow-headers":"Content-Type","vary":"Origin"});res.end();return;}
+if(req.url==="/api/stripe-test-webhook") {
+ if(req.method!=="POST"){respond(res,405,{error:"POST required"});return;}
+ if(process.env.ENABLE_TEST_ORDER_STORAGE!=="true"||process.env.ENABLE_TEST_CHECKOUT!=="true"||!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")){respond(res,503,{error:"Test webhook disabled"});return;}
+ let pool;
+ try {
+  const chunks=[];let size=0;
+  for await(const chunk of req){size+=chunk.length;if(size>65536){respond(res,413,{error:"Payload too large"});return;}chunks.push(chunk);}
+  const verified=verifyTestWebhook({payload:Buffer.concat(chunks),signature:req.headers["stripe-signature"],secret:process.env.STRIPE_WEBHOOK_SECRET,apiKey:process.env.STRIPE_SECRET_KEY});
+  pool=createTestPool();
+  const result=await storeTestEvent(pool,verified);
+  respond(res,200,{received:true,duplicate:result.duplicate});
+ } catch(error){
+  console.error("Test webhook rejected or unavailable:",error?.name||"unknown");
+  respond(res,400,{error:"Test webhook rejected or unavailable"});
+ } finally {if(pool)await pool.end();}
+ return;
+}
 if(req.url!=="/api/quote"&&req.url!=="/api/checkout"){respond(res,404,{error:"Not found"});return;}if(req.method!=="POST"){respond(res,405,{error:"POST required"});return;}
 if(req.headers.origin&&req.headers.origin!==allowedOrigin){respond(res,403,{error:"Origin not allowed"});return;}
 try{let raw="";for await(const chunk of req){raw+=chunk;if(raw.length>8192)throw Error("Payload too large");}const body=JSON.parse(raw);const cart=priceCart(body.cart);if(!validateZip(body.zip)){respond(res,400,{error:"Valid US ZIP Code required"});return;}if(!validateDedication(body.dedication??"")){respond(res,400,{error:"Invalid dedication"});return;}
