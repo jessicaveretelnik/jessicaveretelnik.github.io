@@ -5,7 +5,7 @@
   "scripts": {
     "test": "node --test",
     "start": "node src/server.js",
-    "db:migrate:test": "node src/migrate-test.js"
+    "db:migrate:test": "node scripts/migrate-test.js"
   },
   "engines": {
     "node": ">=20"
