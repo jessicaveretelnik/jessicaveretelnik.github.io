@@ -18,3 +18,5 @@ test("all official 70 lb bands present and invalid USPS counts fail closed",()=>
  assert.equal(MEDIA_MAIL_RETAIL_CENTS.length,70);assert.equal(mediaMailEstimate(100).billablePounds,50);
  for(const n of [0,-1,1.5,101,NaN]) assert.throws(()=>mediaMailEstimate(n));
 });
+
+test("Media Mail estimate is included for 1–3 copy offers",()=>{for(const count of [1,2,3]){const q=priceCart([{id:"india",quantity:count}]);assert.equal(q.estimatedBookWeightOz,count*8);assert.equal(q.billablePounds,Math.ceil(count/2));assert.equal(q.mediaMailCents,MEDIA_MAIL_RETAIL_CENTS[Math.ceil(count/2)-1]);}});
