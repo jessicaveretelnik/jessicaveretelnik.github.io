@@ -25,3 +25,23 @@ test("test checkout refuses live keys and non-HTTPS redirects",async()=>{
  await assert.rejects(()=>createTestCheckoutSession({cart,zip:"78201"},{...options,successUrl:"http://example.test/success",stripe}),/HTTPS/);
  await assert.rejects(()=>createTestCheckoutSession({cart,zip:"invalid"},{...options,stripe}),/Invalid delivery/);
 });
+
+test("all approved quantities produce the exact server-side Stripe total",async()=>{
+ for(const [count,expected] of [[1,1699],[2,2899],[3,3699],[4,4898],[5,6097],[10,12092]]){
+  let params;
+  const stripe={checkout:{sessions:{create:async p=>{params=p;return {id:"cs_test_mock",url:"https://checkout.stripe.com/mock"};}}}};
+  await createTestCheckoutSession({cart:[{id:"india",quantity:count}],zip:"78249"},{...options,stripe});
+  assert.equal(params.line_items.reduce((sum,item)=>sum+item.price_data.unit_amount*item.quantity,0),expected);
+  assert.equal(params.line_items.length,count<=2?2:1);
+ }
+});
+test("invalid cart and dedication never reach Stripe",async()=>{
+ let calls=0;
+ const stripe={checkout:{sessions:{create:async()=>{calls++;return {};}}}};
+ for(const input of [
+  {cart:[{id:"unknown",quantity:1}],zip:"78249"},
+  {cart:[{id:"india",quantity:0}],zip:"78249"},
+  {cart:[{id:"india",quantity:1}],zip:"78249",dedication:"x".repeat(121)}
+ ]) await assert.rejects(()=>createTestCheckoutSession(input,{...options,stripe}));
+ assert.equal(calls,0);
+});
