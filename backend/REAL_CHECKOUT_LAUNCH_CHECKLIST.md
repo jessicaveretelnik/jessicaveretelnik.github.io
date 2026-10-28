@@ -36,3 +36,10 @@ This is a planning document only. No live Stripe keys, charges, migrations, or d
 - Use actual business start date and actual operating address; do not invent tax IDs or claim a permit number before issuance.
 - The state expects ongoing returns even for zero sales. Texas seller-charged shipping on taxable books is generally taxable; validate locality sourcing and interstate nexus.
 - Do not enable live Stripe or create charges until permit, tax setup, production database and signed webhooks are verified.
+
+## Confirmed owner preference (checkout presentation)
+- Legal seller / sole proprietor: Jéssica Paula Barbosa Veretelnik.
+- Site visual identity: Jéssica Veretelnik Books.
+- Receipts and seller legal disclosures should identify the legal proprietor accurately after tax and legal review.
+- **Do not assume DBA exemption** merely because receipts use the legal name. Confirm with Bexar County Clerk whether public use of "Jéssica Veretelnik Books" constitutes conducting business under an assumed name.
+- No public branding changes, production Stripe activation, or main-branch edits are authorized.
