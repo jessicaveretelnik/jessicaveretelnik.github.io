@@ -45,3 +45,36 @@ test("invalid cart and dedication never reach Stripe",async()=>{
  ]) await assert.rejects(()=>createTestCheckoutSession(input,{...options,stripe}));
  assert.equal(calls,0);
 });
+
+test("webhook event storage is idempotent and never fulfills an order",async()=>{
+ const {recordVerifiedTestEvent}=await import("../src/test-order-store.js");
+ const queries=[];
+ let eventExists=false;
+ const db={query:async(sql,params=[])=>{
+  queries.push({sql,params});
+  if(sql.includes("INSERT INTO stripe_test_events")){
+   if(eventExists)return {rowCount:0};
+   eventExists=true;return {rowCount:1};
+  }
+  return {rowCount:1};
+ }};
+ const verified={eventId:"evt_test123",eventType:"checkout.session.completed",checkoutSessionId:"cs_test_123",paymentStatus:"paid",verified:true,fulfilled:false};
+ assert.deepEqual(await recordVerifiedTestEvent(db,verified),{duplicate:false,recorded:true});
+ assert.deepEqual(await recordVerifiedTestEvent(db,verified),{duplicate:true,recorded:false});
+ assert.equal(queries.filter(q=>q.sql.includes("INSERT INTO stripe_test_orders")).length,1);
+ assert.equal(queries.filter(q=>q.sql==="COMMIT").length,2);
+ assert.equal(queries.some(q=>/fulfill|shipped/i.test(q.sql)),false);
+});
+test("unpaid webhook event never creates a paid order",async()=>{
+ const {recordVerifiedTestEvent}=await import("../src/test-order-store.js");
+ const queries=[];
+ const db={query:async(sql)=>{queries.push(sql);return {rowCount:1};}};
+ await recordVerifiedTestEvent(db,{eventId:"evt_unpaid123",eventType:"checkout.session.completed",checkoutSessionId:"cs_test_456",paymentStatus:"unpaid",verified:true,fulfilled:false});
+ assert.equal(queries.some(sql=>sql.includes("INSERT INTO stripe_test_orders")),false);
+});
+test("unverified webhook event is rejected before database writes",async()=>{
+ const {recordVerifiedTestEvent}=await import("../src/test-order-store.js");
+ let writes=0;
+ await assert.rejects(()=>recordVerifiedTestEvent({query:async()=>{writes++;}}, {eventId:"evt_bad",eventType:"checkout.session.completed",checkoutSessionId:"cs_test_1",paymentStatus:"paid",verified:false,fulfilled:false}),/Verified test event/);
+ assert.equal(writes,0);
+});
