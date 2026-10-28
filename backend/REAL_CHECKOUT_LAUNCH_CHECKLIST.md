@@ -26,3 +26,13 @@ This is a planning document only. No live Stripe keys, charges, migrations, or d
 ## Current state
 - The existing backend is test-only. Do not change ENABLE_TEST_CHECKOUT or ENABLE_TEST_ORDER_STORAGE to true until the private migration and persistence tests pass.
 - GitHub Pages main and the draft PR must remain unchanged/unmerged until explicit approval.
+
+## Sole proprietor Texas permit — application preparation
+- Official application: https://comptroller.texas.gov/taxes/permit/ (eSystems); free, typically 2–3 weeks.
+- Applicant type: Sole Proprietorship / Individual; owner legal name and SSN entered ONLY into the state portal.
+- Business activity: direct online retail of printed books; evaluate NAICS 459210 (retail books) versus author/self-publisher activity classification.
+- Website: https://jessicaveretelnik.github.io/ ; payment processor: Stripe.
+- Confirm whether assumed-name/DBA filing is required at the appropriate county clerk; never claim it has been filed.
+- Use actual business start date and actual operating address; do not invent tax IDs or claim a permit number before issuance.
+- The state expects ongoing returns even for zero sales. Texas seller-charged shipping on taxable books is generally taxable; validate locality sourcing and interstate nexus.
+- Do not enable live Stripe or create charges until permit, tax setup, production database and signed webhooks are verified.
