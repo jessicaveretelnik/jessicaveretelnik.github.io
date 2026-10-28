@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test src/*.test.js",
+    "test": "node --test src/*.test.js scripts/*.test.js",
     "start": "node src/server.js",
     "db:migrate:test": "node scripts/migrate-test.js"
   },
